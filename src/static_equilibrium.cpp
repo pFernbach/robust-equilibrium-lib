@@ -317,12 +317,6 @@ LP_status StaticEquilibrium::computeEquilibriumRobustness(Cref_vector3 com, Cref
   return status;
 }
 
-/**
-  m_d.setZero();
-  m_d.head<3>() = m_mass*m_gravity;
-  m_D.setZero();
-  m_D.block<3,3>(3,0) = crossMatrix(-m_mass*m_gravity);
-*/
 
 LP_status StaticEquilibrium::checkRobustEquilibrium(Cref_vector3 com, bool &equilibrium, double e_max)
 {
@@ -584,10 +578,13 @@ double StaticEquilibrium::convert_emax_to_b0(double emax)
 }
 
 
-LP_status StaticEquilibrium::findMaximumAcceleration(Cref_matrixXX A, Cref_vector6 h, double& alpha0){
-  int m = (int)A.cols() -1 ; // 4* number of contacts
+LP_status StaticEquilibrium::findMaximumAcceleration(Cref_matrix63 H, Cref_vector6 h,Cref_vector3 v, double& alpha0){
+  int m = (int)m_G_centr.cols() -1 ; // 4* number of contacts
   VectorX b_a0(m+1);
   VectorX c = VectorX::Zero(m+1);
+  MatrixXX A = MatrixXX::Zero(6, m+1);
+  A.topLeftCorner(6,m) = - m_G_centr;
+  A.topRightCorner(6,1) = H * v;
   c(m) = -1.0;  // because we search max alpha0
   VectorX lb = VectorX::Zero(m+1);
   VectorX ub = VectorX::Ones(m+1)*1e10; // Inf
@@ -612,8 +609,8 @@ LP_status StaticEquilibrium::findMaximumAcceleration(Cref_matrixXX A, Cref_vecto
 
 }
 
-bool StaticEquilibrium::checkAdmissibleAcceleration(Cref_matrixXX G, Cref_matrixXX H, Cref_vector6 h, Cref_vector3 a ){
-  int m = (int)G.cols(); // number of contact * 4
+bool StaticEquilibrium::checkAdmissibleAcceleration(Cref_matrix63 H, Cref_vector6 h, Cref_vector3 a ){
+  int m = (int)m_G_centr.cols(); // number of contact * generator per contacts
   VectorX b(m);
   VectorX c = VectorX::Zero(m);
   VectorX lb = VectorX::Zero(m);
@@ -623,9 +620,9 @@ bool StaticEquilibrium::checkAdmissibleAcceleration(Cref_matrixXX G, Cref_matrix
   int iter = 0;
   LP_status lpStatus;
   do{
-    lpStatus = m_solver->solve(c, lb, ub, G, Alb, Aub, b);
+    lpStatus = m_solver->solve(c, lb, ub, m_G_centr, Alb, Aub, b);
     iter ++;
-  }while(lpStatus == LP_STATUS_ERROR && iter < 5);
+  }while(lpStatus == LP_STATUS_ERROR && iter < 3);
 
   if(lpStatus==LP_STATUS_OPTIMAL || lpStatus==LP_STATUS_UNBOUNDED)
   {
