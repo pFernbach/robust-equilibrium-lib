@@ -130,6 +130,8 @@ public:
   bool setNewContacts(Cref_matrixX3 contactPoints, Cref_matrixX3 contactNormals,
                       double frictionCoefficient, StaticEquilibriumAlgorithm alg);
 
+  void setG(Cref_matrix6X G){m_G_centr = G;}
+
   /**
    * @brief Compute a measure of the robustness of the equilibrium of the specified com position.
    * This amounts to solving the following LP:
