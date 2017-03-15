@@ -153,6 +153,8 @@ public:
   bool setNewContacts(const MatrixX3ColMajor& contactPoints, const MatrixX3ColMajor&  contactNormals,
                       const double frictionCoefficient, const EquilibriumAlgorithm alg, const int graspIndex = -1, const double maxGraspForce = 500.);
 
+  void setG(Cref_matrix6X G){m_G_centr = G;}
+
   /**
    * @brief Compute a measure of the robustness of the equilibrium of the specified com position.
    * This amounts to solving the following LP:
