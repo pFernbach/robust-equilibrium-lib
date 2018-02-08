@@ -613,6 +613,15 @@ bool Equilibrium::computePolytopeProjection(Cref_matrix6X v, const int graspInde
   }
 //  getProfiler().stop("cdd to eigen");
 
+  std::cout<<" inequalities : m = "<<m<<std::endl;
+  if(m_h.rows() < n )
+    {
+        SEND_ERROR_MSG("numerical instability in cddlib. ill formed polytope");
+        m_is_cdd_stable = false;
+        return false;
+    }
+
+
   return true;
 }
 
